@@ -1,38 +1,40 @@
 package transport
 
-import "github.com/gustavolopess/locker/src/locker"
+import (
+	"github.com/gustavolopess/locker/src/locker"
+)
 
-type createLockerRequest struct {
-	Locker locker.Locker
+type CreateLockerRequest struct {
+	ID string `json:"id"`
 }
 
-type createLockerResponse struct {
+type CreateLockerResponse struct {
 	ID string `json:"id,omitempty"`
 	Err error `json:"error,omitempty"`
 }
 
-type getLockerByIDRequest struct {
+type GetLockerByIDRequest struct {
 	ID string
 }
 
-type getLockerByIDResponse struct {
+type GetLockerByIDResponse struct {
 	Locker locker.Locker `json:"locker"`
 	Err error `json:"error,omitempty"`
 }
 
-type openLockerRequest struct {
+type OpenLockerRequest struct {
 	ID string
 }
 
-type openLockerResponse struct {
+type OpenLockerResponse struct {
 	Err error `json:"error,omitempty"`
 }
 
-type closeLockerRequest struct {
+type CloseLockerRequest struct {
 	ID string
 }
 
-type closeLockerResponse struct {
+type CloseLockerResponse struct {
 	Err error `json:"error,omitempty"`
 }
 

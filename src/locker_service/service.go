@@ -3,41 +3,39 @@ package locker_service
 import (
 	"context"
 	"github.com/go-kit/kit/log"
-	"github.com/gustavolopess/locker/src/identity"
 	"github.com/gustavolopess/locker/src/locker"
 	lockerstore "github.com/gustavolopess/locker/src/locker/store"
 )
 
-type Service interface {
-	CreateLocker(ctx context.Context, locker locker.Locker) (string, error)
+type LockerService interface {
+	CreateLocker(ctx context.Context, id string) (string, error)
 	GetLockerByID(ctx context.Context, id string) (locker.Locker, error)
-	OpenLocker(ctx context.Context, id string, fingerprint identity.Fingerprint) error
+	OpenLocker(ctx context.Context, id string) error
 	CloseLocker(ctx context.Context, id string) error
 }
 
 
 type service struct {
-	store  lockerstore.Store
+	store  lockerstore.LockerStore
 	logger log.Logger
 }
 
-func NewService(store lockerstore.Store, logger log.Logger) Service {
+func NewLockerService(store lockerstore.LockerStore, logger log.Logger) LockerService {
 	return &service{
 		store:  store,
 		logger: logger,
 	}
 }
 
-func (s *service) CreateLocker(ctx context.Context, locker locker.Locker) (string, error) {
-	return s.store.CreateLocker(locker)
+func (s *service) CreateLocker(ctx context.Context, id string) (string, error) {
+	return s.store.CreateLocker(id)
 }
 
 func (s *service) GetLockerByID(ctx context.Context, id string) (locker.Locker, error) {
 	return s.store.GetLockerByID(id)
 }
 
-func (s *service) OpenLocker(ctx context.Context, id string, fingerprint identity.Fingerprint) error {
-	// TODO: validate fingerprint before open locker
+func (s *service) OpenLocker(ctx context.Context, id string) error {
 	return s.store.OpenLocker(id)
 }
 

@@ -1,11 +1,13 @@
 package redis
 
 import (
+	"fmt"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis"
 	"os"
 	"strconv"
+	"time"
 )
 
 type RedisCache interface {
@@ -37,7 +39,7 @@ func (r redisCache) GetConnection() *redis.Client {
 		if err != nil {
 			panic("Invalid redis database")
 		}
-		redis.NewClient(&redis.Options{
+		connection = redis.NewClient(&redis.Options{
 			Addr:     os.Getenv("REDIS_ADDRESS"),
 			Password: os.Getenv("REDIS_PASSWORD"),
 			DB:       redisDatabase,
@@ -69,7 +71,7 @@ func (r redisCache) GetByKey(key string) (string, error) {
 
 func (l lockerCache) OpenLocker(id string) error {
 	conn := l.GetConnection()
-	return conn.Set(id, "open", 10000).Err()
+	return conn.Set(id, "open", 20 * time.Second).Err()
 }
 
 func (l lockerCache) CloseLocker(id string) error {

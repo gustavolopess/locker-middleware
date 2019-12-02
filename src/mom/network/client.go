@@ -18,6 +18,8 @@ type Client interface {
 	Receive() ([]byte, error)
 	Subscribe(roomID string, callback func(resp transport.GetMessageFromRoomResponse))
 	InsertMessageOnRoom(roomID string, payload string) error
+	CreateTopic(name string) error
+	CreateRoom(topicID string) error
 }
 
 type client struct {
@@ -91,10 +93,38 @@ func (c *client) InsertMessageOnRoom(roomID string, payload string) error {
 		Payload:   payload,
 	}
 
-	reqBytes, err := json.Marshal(&req)
-	reqBytes = append(reqBytes, '\n')
+	reqBytes, err := RequestToBytes(&req)
 	if err != nil {
 		_ = level.Debug(c.Logger).Log("client-insert", err)
+		return err
+	}
+
+	return c.Send(reqBytes)
+}
+
+func (c *client) CreateTopic(name string) error {
+	req := GenericRequest{
+		Operation: CreateTopicOperation,
+		TopicName: name,
+	}
+
+	reqBytes, err := RequestToBytes(&req)
+	if err != nil {
+		_ = level.Debug(c.Logger).Log("client-create-topic", err)
+		return err
+	}
+
+	return c.Send(reqBytes)
+}
+
+func (c *client) CreateRoom(topicID string) error {
+	req := GenericRequest{
+		Operation: CreateRoomOperation,
+		TopicID:   topicID,
+	}
+	reqBytes, err := RequestToBytes(&req)
+	if err != nil {
+		_ = level.Debug(c.Logger).Log("client-create-room", err)
 		return err
 	}
 
@@ -117,14 +147,13 @@ func (c *client) Subscribe(roomID string, callback func(resp transport.GetMessag
 			return
 		}
 
-		_ = level.Info(c.Logger).Log("client-subscribe", string(responseBytes))
-
 		var response transport.GetMessageFromRoomResponse
 		if err = json.Unmarshal(responseBytes, &response); err != nil {
 			panic(err)
 		}
 
-		if lastIdx < response.Message.Index {
+		if lastIdx < response.Message.Index && len(response.Message.ID) > 0 {
+			_ = level.Info(c.Logger).Log("client-subscribe", string(responseBytes))
 			lastIdx = response.Message.Index
 			go callback(response)
 		}

@@ -6,16 +6,16 @@ import (
 	"github.com/gustavolopess/locker/src/locker_service"
 )
 
-// Endpoints holds all Go Kit endpoints for locker service
-type Endpoints struct {
+// LockerEndpoints holds all Go Kit endpoints for locker service
+type LockerEndpoints struct {
 	CreateLocker endpoint.Endpoint
 	GetLockerByID endpoint.Endpoint
-	OpenLocker endpoint.Endpoint
+		OpenLocker endpoint.Endpoint
 	CloseLocker endpoint.Endpoint
 }
 
-func MakeEndpoints(s locker_service.Service) Endpoints {
-	return Endpoints{
+func MakeLockerEndpoints(s locker_service.LockerService) LockerEndpoints {
+	return LockerEndpoints{
 		CreateLocker:  makeCreateLockerEndpoint(s),
 		GetLockerByID: makeGetLockerByIDEndpoint(s),
 		OpenLocker:    makeOpenLockerEndpoint(s),
@@ -23,41 +23,41 @@ func MakeEndpoints(s locker_service.Service) Endpoints {
 	}
 }
 
-func makeCreateLockerEndpoint(s locker_service.Service) endpoint.Endpoint {
+func makeCreateLockerEndpoint(s locker_service.LockerService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(createLockerRequest)
-		id, err := s.CreateLocker(ctx, req.Locker)
-		return createLockerResponse{
+		req := request.(CreateLockerRequest)
+		id, err := s.CreateLocker(ctx, req.ID)
+		return CreateLockerResponse{
 			ID:  id,
 			Err: err,
 		}, nil
 	}
 }
 
-func makeGetLockerByIDEndpoint(s locker_service.Service) endpoint.Endpoint {
+func makeGetLockerByIDEndpoint(s locker_service.LockerService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(getLockerByIDRequest)
+		req := request.(GetLockerByIDRequest)
 		loc, err := s.GetLockerByID(ctx, req.ID)
-		return getLockerByIDResponse{
+		return GetLockerByIDResponse{
 			Locker: loc,
 			Err:   err,
 		}, nil
 	}
 }
 
-func makeOpenLockerEndpoint(s locker_service.Service) endpoint.Endpoint {
+func makeOpenLockerEndpoint(s locker_service.LockerService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(openLockerRequest)
+		req := request.(OpenLockerRequest)
 		err := s.OpenLocker(ctx, req.ID)
-		return openLockerResponse{Err: err}, nil
+		return OpenLockerResponse{Err: err}, nil
 	}
 }
 
-func makeCloseLockerEndpoint(s locker_service.Service) endpoint.Endpoint {
+func makeCloseLockerEndpoint(s locker_service.LockerService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(closeLockerRequest)
+		req := request.(CloseLockerRequest)
 		err := s.CloseLocker(ctx, req.ID)
-		return closeLockerResponse{Err: err}, nil
+		return CloseLockerResponse{Err: err}, nil
 	}
 }
 

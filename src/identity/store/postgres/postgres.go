@@ -2,45 +2,73 @@ package postgres
 
 import (
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+	"github.com/go-pg/pg"
 	"github.com/gustavolopess/locker/src/identity"
-	"github.com/gustavolopess/locker/src/utils/pgdatabase"
+	"os"
 )
 
 type IdentityDatabase interface {
 	CreateIdentity(identity identity.Identity) error
 	GetIdentityByID(id string) (identity.Identity, error)
-	GetIdentityByFingerprint(fingerprint identity.Fingerprint) (identity.Identity, error)
+	GetIdentityByFingerprint(fingerprint string) (identity.Identity, error)
 }
 
 type identityDatabase struct{
-	pgdatabase.PgDatabase
 	logger log.Logger
 }
 
+var connection *pg.DB
+
 func NewIdentityDatabase(logger log.Logger) IdentityDatabase {
 	return &identityDatabase{
-		PgDatabase: pgdatabase.NewPgDatabase(logger),
 		logger:     logger,
 	}
 }
 
+func (db *identityDatabase) GetConnection() *pg.DB {
+	if connection == nil {
+		connection = pg.Connect(&pg.Options{
+			Addr:                  os.Getenv("POSTGRES_LOCKER_ADDRESS"),
+			User:                  os.Getenv("POSTGRES_LOCKER_USER"),
+			Password:              os.Getenv("POSTGRES_LOCKER_PASSWORD"),
+			Database:              os.Getenv("POSTGRES_LOCKER_DATABASE"),
+			PoolSize:              40,
+		})
+		_ = level.Info(db.logger).Log("identity-database", "Init pgdatabase session")
+	}
+
+	return connection
+}
+
 func (db *identityDatabase) CreateIdentity(identity identity.Identity) error {
-	return db.CreateSomething(identity)
+	conn := db.GetConnection()
+	tx, err := conn.Begin()
+	if err != nil {
+		return err
+	}
+	if err := tx.Insert(&identity); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	return nil
 }
 
-func (db *identityDatabase) GetIdentityByID(id string) (identity.Identity, error) {
-	ident := identity.Identity{}
-
-	err := db.GetModelByAttribute(ident, "id", id)
-
-	return ident, err
+func (db *identityDatabase) GetIdentityByID(id string) (idt identity.Identity, err error) {
+	conn := db.GetConnection()
+	err = conn.Model(&idt).Where("id = ?", id).First()
+	return
 }
 
-func (db *identityDatabase) GetIdentityByFingerprint(fingerprint identity.Fingerprint) (identity.Identity, error) {
-	ident := identity.Identity{}
-
-	err := db.GetModelByAttribute(ident, "fingerprint", fingerprint)
-
-	return ident, err
+func (db *identityDatabase) GetIdentityByFingerprint(fingerprint string) (idt identity.Identity, err error) {
+	conn := db.GetConnection()
+	err = conn.Model(&idt).Where("fingerprint = ?", fingerprint).First()
+	return
 }
 

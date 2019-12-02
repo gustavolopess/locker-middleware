@@ -2,10 +2,7 @@ package identity
 
 type Identity struct {
 	ID string `json:"id"`
-	Fingerprint `json:"fingerprint"`
+	Fingerprint string `json:"fingerprint"`
 }
 
-type Fingerprint struct {
-	Payload []byte `json:"payload"`
-}
 

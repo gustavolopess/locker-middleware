@@ -13,6 +13,15 @@ services:
       - mom
     restart: unless-stopped
 
+  redis:
+    image: redis:latest
+    command: redis-server --requirepass RedisLocker
+    ports:
+      - "6379:6379"
+    networks:
+      - mom
+    restart: unless-stopped
+
 networks:
   mom:
     driver: bridge

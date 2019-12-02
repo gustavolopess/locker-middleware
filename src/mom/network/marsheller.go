@@ -29,8 +29,10 @@ func ByteToRequest(data []byte) (req GenericRequest, err error) {
 	return
 }
 
-func RequestToByte(req GenericRequest) ([]byte, error) {
-	return json.Marshal(req)
+func RequestToBytes(req *GenericRequest) ([]byte, error) {
+	reqBytes, err := json.Marshal(req)
+	reqBytes = append(reqBytes, '\n')
+	return reqBytes, err
 }
 
 //func MarshalRequest(req []byte) (req GenericRequest, err error) {

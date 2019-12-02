@@ -7,9 +7,9 @@ import (
 	"github.com/gustavolopess/locker/src/locker/store/redis"
 )
 
-// Store describes the persistence on Locker model
-type Store interface {
-	CreateLocker(locker locker.Locker) (string, error)
+// LockerStore describes the persistence on Locker model
+type LockerStore interface {
+	CreateLocker(id string) (string, error)
 	GetLockerByID(id string) (locker.Locker, error)
 	CloseLocker(id string) error
 	OpenLocker(id string) error
@@ -22,14 +22,14 @@ type store struct {
 	database postgres.LockerDatabase
 }
 
-func NewStore(logger log.Logger) Store {
+func NewLockerStore(logger log.Logger) LockerStore {
 	database := postgres.NewLockerDatabase(logger)
 	cache := redis.NewLockerCache(logger)
 	return store{logger, cache, database}
 }
 
-func (s store) CreateLocker(locker locker.Locker) (string, error) {
-	return s.database.CreateLocker(locker)
+func (s store) CreateLocker(id string) (string, error) {
+	return s.database.CreateLocker(id)
 }
 
 func (s store) GetLockerByID(id string) (locker.Locker, error) {
