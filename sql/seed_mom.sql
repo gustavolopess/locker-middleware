@@ -1,0 +1,1 @@
+INSERT INTO topics (id, name) values ('topic1', 'topico 1');

@@ -1,0 +1,18 @@
+version: '3.5'
+
+services:
+  postgres_mom:
+    container_name: postgres_container
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    networks:
+      - mom
+    restart: unless-stopped
+
+networks:
+  mom:
+    driver: bridge
